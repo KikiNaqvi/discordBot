@@ -1,0 +1,26 @@
+{
+  "name": "discord-sparx-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot that logs into Sparx Learning, scrapes info, and posts it to a channel.",
+  "main": "bot.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node bot.mjs"
+  },
+  "dependencies": {
+    "discord.js": "^14.21.0",
+    "dotenv": "^16.5.0",
+    "fs": "^0.0.1-security",
+    "puppeteer": "^22.15.0",
+    "puppeteer-stream": "^3.0.20"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "scraper",
+    "puppeteer",
+    "sparx-learning"
+  ],
+  "author": "kiyan",
+  "license": "MIT"
+}
