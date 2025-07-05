@@ -116,10 +116,11 @@ client.on('interactionCreate', async (interaction) => {
   }
 
   const { username: USERNAME, password: PASSWORD } = userCreds;
-
-  let browser;
   try {
-    browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const page = await browser.newPage();
     const totalStart = Date.now();
 
