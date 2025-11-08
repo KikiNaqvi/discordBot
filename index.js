@@ -7,6 +7,7 @@ import express from "express";
 
 dotenv.config();
 
+// ---------------- Discord Bot Setup ----------------
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
@@ -15,14 +16,13 @@ client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
-// Discord bot command
 client.on("messageCreate", async (message) => {
   if (!message.content.startsWith("!sparxreader")) return;
 
-  await message.reply("📖 Loading Sparx Reader...");
-
   let browser;
   try {
+    await message.channel.send("📖 Loading Sparx Reader...");
+
     browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
@@ -35,37 +35,46 @@ client.on("messageCreate", async (message) => {
     // Go to Sparx Reader
     await page.goto("https://reader.sparx-learning.com", { waitUntil: "domcontentloaded" });
 
-    // Wait for input using placeholder (more reliable than classes)
-    await page.waitForSelector('input[placeholder="Start typing your school\'s name..."]', { timeout: 15000 });
-    await page.type('input[placeholder="Start typing your school\'s name..."]', "Beal High School");
+    // --- Debug screenshot immediately ---
+    const debugPath = "debug.png";
+    await page.screenshot({ path: debugPath, fullPage: true });
+    await message.channel.send({
+      content: "📸 Page loaded — here’s what Puppeteer sees:",
+      files: [debugPath],
+    });
+    fs.unlinkSync(debugPath);
 
-    // Give it a moment to render
-    await page.waitForTimeout(1500);
+    // Optional: wait for input if you want to type after seeing screenshot
+    try {
+      await page.waitForSelector('input[placeholder="Start typing your school\'s name..."]', { timeout: 15000 });
+      await page.type('input[placeholder="Start typing your school\'s name..."]', "Beal High School");
+      await page.waitForTimeout(1500);
 
-    // Screenshot
-    const screenshotPath = "sparx.png";
-    await page.screenshot({ path: screenshotPath });
+      const screenshotPath = "sparx.png";
+      await page.screenshot({ path: screenshotPath, fullPage: true });
+      await message.channel.send({
+        content: "📸 Here’s the school input screenshot:",
+        files: [screenshotPath],
+      });
+      fs.unlinkSync(screenshotPath);
+    } catch {
+      await message.channel.send("⚠️ Input box not found — check the first screenshot.");
+    }
 
     await browser.close();
-
-    // Send to Discord
-    await message.channel.send({
-      content: "📸 Here’s what I got:",
-      files: [screenshotPath],
-    });
-
-    fs.unlinkSync(screenshotPath);
   } catch (err) {
     console.error("❌ Puppeteer error:", err);
-    await message.reply("❌ Something went wrong while loading the page!");
+    if (message.channel) {
+      await message.channel.send("❌ Something went wrong while loading the page!");
+    }
     if (browser) await browser.close().catch(() => {});
   }
 });
 
-// Discord login
+// ---------------- Discord Login ----------------
 client.login(process.env.DISCORD_TOKEN);
 
-// --- Express server for Render web service ---
+// ---------------- Express Server for Render ----------------
 const app = express();
 const PORT = process.env.PORT || 10000;
 
