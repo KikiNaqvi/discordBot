@@ -1,0 +1,19 @@
+{
+  "name": "sparx-reader-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "^133.0.0",
+    "discord.js": "^14.24.2",
+    "dotenv": "^17.2.3",
+    "puppeteer-core": "^22.15.0"
+  },
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
