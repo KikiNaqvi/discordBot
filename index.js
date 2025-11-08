@@ -3,6 +3,7 @@ import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import dotenv from "dotenv";
 import fs from "fs";
+import express from "express"; // for web service
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
+// Discord bot command
 client.on("messageCreate", async (message) => {
   if (!message.content.startsWith("!sparxreader")) return;
 
@@ -29,23 +31,14 @@ client.on("messageCreate", async (message) => {
     });
 
     const page = await browser.newPage();
+    await page.goto("https://reader.sparx-learning.com", { waitUntil: "domcontentloaded" });
 
-    // Go to Sparx Reader
-    await page.goto("https://reader.sparx-learning.com", {
-      waitUntil: "domcontentloaded",
-    });
-
-    // Type the school name into the box
     await page.waitForSelector("input._Input_1573n_4", { timeout: 10000 });
     await page.type("input._Input_1573n_4", "Beal High School");
-
-    // Wait a bit for the UI to update
     await page.waitForTimeout(1500);
 
-    // Screenshot and send to Discord
     const screenshotPath = "sparx.png";
     await page.screenshot({ path: screenshotPath });
-
     await browser.close();
 
     await message.channel.send({
@@ -62,3 +55,10 @@ client.on("messageCreate", async (message) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
+// --- Express server for Render web service ---
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.get("/", (req, res) => res.send("Discord bot is running!"));
+app.listen(PORT, () => console.log(`🌐 Web server running on port ${PORT}`));
