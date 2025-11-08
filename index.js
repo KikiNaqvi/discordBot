@@ -3,7 +3,7 @@ import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import dotenv from "dotenv";
 import fs from "fs";
-import express from "express"; // for web service
+import express from "express";
 
 dotenv.config();
 
@@ -31,16 +31,24 @@ client.on("messageCreate", async (message) => {
     });
 
     const page = await browser.newPage();
+
+    // Go to Sparx Reader
     await page.goto("https://reader.sparx-learning.com", { waitUntil: "domcontentloaded" });
 
-    await page.waitForSelector("input._Input_1573n_4", { timeout: 10000 });
-    await page.type("input._Input_1573n_4", "Beal High School");
+    // Wait for input using placeholder (more reliable than classes)
+    await page.waitForSelector('input[placeholder="Start typing your school\'s name..."]', { timeout: 15000 });
+    await page.type('input[placeholder="Start typing your school\'s name..."]', "Beal High School");
+
+    // Give it a moment to render
     await page.waitForTimeout(1500);
 
+    // Screenshot
     const screenshotPath = "sparx.png";
     await page.screenshot({ path: screenshotPath });
+
     await browser.close();
 
+    // Send to Discord
     await message.channel.send({
       content: "📸 Here’s what I got:",
       files: [screenshotPath],
@@ -54,6 +62,7 @@ client.on("messageCreate", async (message) => {
   }
 });
 
+// Discord login
 client.login(process.env.DISCORD_TOKEN);
 
 // --- Express server for Render web service ---
